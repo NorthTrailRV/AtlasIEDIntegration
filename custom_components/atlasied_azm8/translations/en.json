@@ -1,0 +1,22 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "AtlasIED AZM8 Setup",
+        "description": "Configure your AtlasIED AZM8 8-Zone Audio Mixer",
+        "data": {
+          "host": "IP Address or Hostname",
+          "port": "Port",
+          "name": "Device Name"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the device. Please check the IP address and port.",
+      "unknown": "Unexpected error occurred"
+    },
+    "abort": {
+      "already_configured": "This device is already configured"
+    }
+  }
+}
