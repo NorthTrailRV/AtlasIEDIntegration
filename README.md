@@ -1,382 +1,136 @@
-# AtlasIED AZM8 Home Assistant Integration# AtlasIED AZM8 Home Assistant Integration
+# AtlasIED AZM4/AZM8 Home Assistant Integration
 
+This is a custom integration for Home Assistant to control AtlasIED AZM4 and AZM8 audio zone mixers.
 
+## Features
 
-A custom Home Assistant integration for the **AtlasIED AZM8** 8-Zone Audio Mixer, providing complete control over all 8 audio zones through the Home Assistant interface using the official JSON-RPC 2.0 protocol.A custom Home Assistant integration for the **AtlasIED AZM8** 8-Zone Audio Mixer, providing complete control over all 8 audio zones through the Home Assistant interface.
+- **Real-time Communication**: Uses TCP (port 5321) and UDP (port 3131) for bidirectional communication
+- **Automatic Subscriptions**: Subscribes to device parameters and receives real-time updates
+- **Keep-alive**: Maintains connection with automatic keep-alive messages every 4 minutes
+- **Multiple Entity Types**:
+  - **Number Entities**: Zone and Source gain controls (-80dB to +12dB)
+  - **Switch Entities**: Zone and Source mute controls, Group combine/uncombine
+  - **Sensor Entities**: Zone and Source names, audio meters (dB levels)
 
+## Installation
 
-
-## Features## Features
-
-
-
-- 🎵 **8 Independent Zone Control**: Control all 8 zones as separate media player entities- 🎵 **8 Independent Zone Control**: Control all 8 zones as separate media player entities
-
-- 🔊 **Volume Control**: Adjust volume levels (0-100%) for each zone- 🔊 **Volume Control**: Adjust volume levels (0-100%) for each zone
-
-- 🔇 **Mute Control**: Mute/unmute individual zones- 🔇 **Mute Control**: Mute/unmute individual zones
-
-- 🎚️ **Source Selection**: Switch between 8 input sources per zone- ⚡ **Power Control**: Turn zones on/off independently
-
-- 🔄 **Automatic Updates**: Real-time status updates via polling- 🎚️ **Source Selection**: Switch between 8 input sources per zone
-
-- 🖥️ **UI Configuration**: Easy setup through Home Assistant UI- 🔄 **Automatic Updates**: Real-time status updates via polling
-
-- 🔌 **Native Protocol**: Uses official JSON-RPC 2.0 over TCP- 🖥️ **UI Configuration**: Easy setup through Home Assistant UI
-
-
-
-## Installation## Installation
-
-
-
-### HACS (Recommended)### HACS (Recommended)
-
-
-
-1. Open HACS in Home Assistant1. Open HACS in Home Assistant
-
-2. Go to "Integrations"2. Go to "Integrations"
-
-3. Click the three dots in the top right corner3. Click the three dots in the top right corner
-
-4. Select "Custom repositories"4. Select "Custom repositories"
-
-5. Add this repository URL: `https://github.com/NorthTrailRV/AtlasIEDIntegration`5. Add this repository URL and select "Integration" as the category
-
-6. Select "Integration" as the category6. Click "Install"
-
-7. Click "Install"7. Restart Home Assistant
-
-8. Restart Home Assistant
-
-### Manual Installation
-
-### Manual Installation
-
-1. Copy the `custom_components/atlasied_azm8` folder to your Home Assistant's `custom_components` directory
-
-1. Copy the `custom_components/atlasied_azm8` folder to your Home Assistant's `custom_components` directory2. If the `custom_components` directory doesn't exist, create it in the same location as your `configuration.yaml`
-
-2. If the `custom_components` directory doesn't exist, create it in the same location as your `configuration.yaml`3. Restart Home Assistant
-
-3. Restart Home Assistant
+1. Copy the `custom_components/atlasied_azm` folder to your Home Assistant `config/custom_components/` directory
+2. Restart Home Assistant
+3. Go to Configuration > Integrations
+4. Click "+ Add Integration"
+5. Search for "AtlasIED AZM4/AZM8"
+6. Enter your device's IP address and configure the number of zones, sources, and groups
 
 ## Configuration
 
-## Configuration
-
-### Through the UI (Recommended)
-
-### Through the UI (Recommended)
-
-1. Navigate to **Settings** → **Devices & Services**
-
-1. Navigate to **Settings** → **Devices & Services**2. Click **+ Add Integration**
-
-2. Click **+ Add Integration**3. Search for "AtlasIED AZM8"
-
-3. Search for "AtlasIED AZM8"4. Enter your device configuration:
-
-4. Enter your device configuration:   - **Host**: IP address or hostname of your AZM8 device
-
-   - **Host**: IP address or hostname of your AZM8 device   - **Name**: Friendly name for your device (default: "AtlasIED AZM8")
-
-   - **Name**: Friendly name for your device (default: "AtlasIED AZM8")5. Click **Submit**
-
-5. Click **Submit**
-
-**Note**: The integration automatically uses TCP port 5321, which is the standard control port for the AZM8.
-
-**Note**: The integration automatically uses TCP port 5321, which is the standard control port for the AZM8.
-
-The integration will create 8 media player entities, one for each zone:
-
-The integration will create 8 media player entities, one for each zone:- `media_player.atlasied_azm8_zone_1`
-
-- `media_player.atlasied_azm8_zone_1`- `media_player.atlasied_azm8_zone_2`
-
-- `media_player.atlasied_azm8_zone_2`- ... through Zone 8
-
-- ... through Zone 8
+During setup, you'll need to provide:
+- **Host IP Address**: The IP address of your AZM4/AZM8 device
+- **Number of Zones**: Number of audio zones (1-16, default: 8)
+- **Number of Sources**: Number of audio sources (1-16, default: 4)
+- **Number of Groups**: Number of zone groups (1-8, default: 4)
 
 ## Usage
 
-## Usage
+### Entities Created
 
-### Control Zones
+For each zone (e.g., Zone 1):
+- `number.zone_1_gain` - Volume control slider (-80 to +12 dB)
+- `switch.zone_1_mute` - Mute on/off
+- `sensor.zone_1_name` - Zone name from device
+- `sensor.zone_1_meter` - Real-time audio level meter
 
-### Control Zones
+For each source (e.g., Source 1):
+- `number.source_1_gain` - Volume control slider (-80 to +12 dB)
+- `switch.source_1_mute` - Mute on/off
+- `sensor.source_1_name` - Source name from device
+- `sensor.source_1_meter` - Real-time audio level meter
 
-Each zone can be controlled independently through:
+For each group (e.g., Group 1):
+- `switch.group_1_active` - Combine/uncombine zones in group
 
-Each zone can be controlled independently through:
+### Example Automations
 
-**Volume Control:**
-
-**Volume Control:**```yaml
-
-```yamlservice: media_player.volume_set
-
-service: media_player.volume_settarget:
-
-target:  entity_id: media_player.atlasied_azm8_zone_1
-
-  entity_id: media_player.atlasied_azm8_zone_1data:
-
-data:  volume_level: 0.5  # 50% volume
-
-  volume_level: 0.5  # 50% volume```
-
-```
-
-**Mute/Unmute:**
-
-**Mute/Unmute:**```yaml
-
-```yamlservice: media_player.volume_mute
-
-service: media_player.volume_mutetarget:
-
-target:  entity_id: media_player.atlasied_azm8_zone_1
-
-  entity_id: media_player.atlasied_azm8_zone_1data:
-
-data:  is_volume_muted: true
-
-  is_volume_muted: true```
-
-```
-
-**Power Control:**
-
-**Turn On/Off:**```yaml
-
-```yamlservice: media_player.turn_on
-
-service: media_player.turn_ontarget:
-
-target:  entity_id: media_player.atlasied_azm8_zone_1
-
-  entity_id: media_player.atlasied_azm8_zone_1```
-
-```
-
-**Source Selection:**
-
-**Source Selection:**```yaml
-
-```yamlservice: media_player.select_source
-
-service: media_player.select_sourcetarget:
-
-target:  entity_id: media_player.atlasied_azm8_zone_1
-
-  entity_id: media_player.atlasied_azm8_zone_1data:
-
-data:  source: "Input 3"
-
-  source: "Source 3"```
-
-```
-
-### Automations Example
-
-### Automations Example
-
+**Mute all zones at night:**
 ```yaml
-
-```yamlautomation:
-
-automation:  - alias: "Morning Music in All Zones"
-
-  - alias: "Morning Music in All Zones"    trigger:
-
-    trigger:      - platform: time
-
-      - platform: time        at: "07:00:00"
-
-        at: "07:00:00"    action:
-
-    action:      - service: media_player.turn_on
-
-      - service: media_player.turn_on        target:
-
-        target:          entity_id:
-
-          entity_id:            - media_player.atlasied_azm8_zone_1
-
-            - media_player.atlasied_azm8_zone_1            - media_player.atlasied_azm8_zone_2
-
-            - media_player.atlasied_azm8_zone_2      - service: media_player.select_source
-
-      - service: media_player.select_source        target:
-
-        target:          entity_id:
-
-          entity_id:            - media_player.atlasied_azm8_zone_1
-
-            - media_player.atlasied_azm8_zone_1            - media_player.atlasied_azm8_zone_2
-
-            - media_player.atlasied_azm8_zone_2        data:
-
-        data:          source: "Input 1"
-
-          source: "Source 0"      - service: media_player.volume_set
-
-      - service: media_player.volume_set        target:
-
-        target:          entity_id:
-
-          entity_id:            - media_player.atlasied_azm8_zone_1
-
-            - media_player.atlasied_azm8_zone_1            - media_player.atlasied_azm8_zone_2
-
-            - media_player.atlasied_azm8_zone_2        data:
-
-        data:          volume_level: 0.3
-
-          volume_level: 0.3```
-
+automation:
+  - alias: "Mute zones at night"
+    trigger:
+      - platform: time
+        at: "22:00:00"
+    action:
+      - service: switch.turn_on
+        target:
+          entity_id:
+            - switch.zone_1_mute
+            - switch.zone_2_mute
+            - switch.zone_3_mute
 ```
 
-## Device Configuration
+**Set zone volume:**
+```yaml
+service: number.set_value
+target:
+  entity_id: number.zone_1_gain
+data:
+  value: -20
+```
 
-## Device Configuration
+## Protocol Details
 
-### API Protocol
+This integration implements the AtlasIED Third Party Control Protocol:
 
-### API Protocol
+- **TCP Port 5321**: Used for parameter modifications and subscriptions
+- **UDP Port 3131**: Receives meter updates
+- **JSON-RPC 2.0**: All messages use JSON-RPC 2.0 format
+- **Methods Supported**:
+  - `set` - Set parameter values
+  - `bmp` - Bump (increment/decrement) values
+  - `sub` - Subscribe to parameter updates
+  - `unsub` - Unsubscribe from updates
+  - `get` - Get current parameter value
 
-This integration communicates with the AtlasIED AZM8 using **JSON-RPC 2.0** over **TCP port 5321**. Ensure that:
+### Message Examples
 
-This integration communicates with the AtlasIED AZM8 using **JSON-RPC 2.0** over **TCP port 5321**. Ensure that:- Your AZM8 device is connected to your network
+Set zone gain:
+```json
+{"jsonrpc":"2.0","method":"set","params":{"param":"ZoneGain_0","val":-20}}
+```
 
-- Your AZM8 device is connected to your network- The device's IP address is accessible from Home Assistant
-
-- The device's IP address is accessible from Home Assistant- TCP port 5321 is accessible (default control port for AZM8/AZM4)
-
-- TCP port 5321 is accessible (default control port for AZM8/AZM4)- Any firewalls allow communication on port 5321
-
-- Any firewalls allow communication on port 5321
-
-### Technical Details
-
-### Technical Details
-
-- **Protocol**: JSON-RPC 2.0
-
-- **Protocol**: JSON-RPC 2.0- **Transport**: TCP
-
-- **Transport**: TCP- **Port**: 5321 (control), 3131 (UDP for meter updates)
-
-- **Port**: 5321 (control), 3131 (UDP for meter updates)- **Message Format**: Newline-delimited JSON messages
-
-- **Message Format**: Newline-delimited JSON messages- **Volume Range**: -80 dB to +10 dB (mapped to 0-100% in UI)
-
-- **Volume Range**: -80 dB to +10 dB (mapped to 0-100% in UI)- **Zone Indexing**: 0-based (Zone 1 = index 0)
-
-- **Zone Indexing**: 0-based (Zone 1 = index 0)
-
-## Supported Features
-
-## Supported Features
-
-- ✅ Volume control (0-100%)
-
-- ✅ Volume control (0-100%)- ✅ Mute control
-
-- ✅ Mute control- ✅ Power on/off
-
-- ✅ Turn on/off zones- ✅ Source selection (8 inputs)
-
-- ✅ Source selection (8 inputs)- ✅ Independent zone control
-
-- ✅ Independent zone control- ✅ Status polling
-
-- ✅ Status polling
-
-## Troubleshooting
+Subscribe to source meter:
+```json
+{"jsonrpc":"2.0","method":"sub","params":{"param":"SourceMeter_0","fmt":"val"}}
+```
 
 ## Troubleshooting
 
 ### Connection Issues
+- Ensure the AZM device is powered on and connected to your network
+- Verify the IP address is correct
+- Check that ports 5321 (TCP) and 3131 (UDP) are not blocked by firewalls
+- The device must be reachable from your Home Assistant instance
 
-### Connection Issues
+### Entity Updates Not Working
+- The integration automatically subscribes to parameters when entities are added
+- Meter updates are sent via UDP and may take a moment to start appearing
+- Check Home Assistant logs for any error messages
 
-If you cannot connect to the device:
+## Development
 
-If you cannot connect to the device:1. Verify the IP address and port are correct
-
-1. Verify the IP address is correct2. Check that the AZM8 is powered on and connected to the network
-
-2. Check that the AZM8 is powered on and connected to the network3. Ensure there are no firewall rules blocking communication
-
-3. Ensure TCP port 5321 is accessible (test with `telnet <ip> 5321`)4. Check Home Assistant logs for detailed error messages
-
-4. Check Home Assistant logs for detailed error messages
-
-5. Run the included test script: `./test_volume_query.sh <ip_address>`### Viewing Logs
-
-
-
-### Viewing LogsEnable debug logging by adding this to your `configuration.yaml`:
-
-
-
-Enable debug logging by adding this to your `configuration.yaml`:```yaml
-
-logger:
-
-```yaml  default: info
-
-logger:  logs:
-
-  default: info    custom_components.atlasied_azm8: debug
-
-  logs:```
-
-    custom_components.atlasied_azm8: debug
-
-```## Contributing
-
-
-
-## TestingContributions are welcome! Please feel free to submit pull requests or open issues for bugs and feature requests.
-
-
-
-A test script is included to verify communication with the AZM8:## License
-
-
-
-```bashThis project is licensed under the MIT License.
-
-./test_volume_query.sh 192.168.10.50
-
-```## Support
-
-
-
-This will query all zones and display their current status.For issues, questions, or contributions, please visit the [GitHub repository](https://github.com/berapp/atlasied_azm8).
-
-
-
-## Contributing## Credits
-
-
-
-Contributions are welcome! Please feel free to submit pull requests or open issues for bugs and feature requests.Developed for the Home Assistant community to provide seamless integration with AtlasIED AZM8 audio equipment.
-
+The integration consists of:
+- `azm_client.py` - TCP/UDP client implementation
+- `__init__.py` - Integration setup and coordinator
+- `config_flow.py` - Configuration UI
+- `number.py` - Gain control entities
+- `switch.py` - Mute and group control entities
+- `sensor.py` - Name and meter sensor entities
+- `const.py` - Constants and defaults
+- `manifest.json` - Integration metadata
+- `strings.json` / `translations/en.json` - UI strings
 
 ## License
 
-This project is licensed under the MIT License.
+This integration is provided as-is for use with AtlasIED AZM4/AZM8 devices.
 
 ## Support
 
-For issues, questions, or contributions, please visit the [GitHub repository](https://github.com/NorthTrailRV/AtlasIEDIntegration).
-
-## Credits
-
-Developed for the Home Assistant community to provide seamless integration with AtlasIED AZM8 audio equipment using the official JSON-RPC 2.0 protocol.
+For issues and feature requests, please open an issue on the GitHub repository.

@@ -1,0 +1,11 @@
+{
+  "domain": "atlasied_azm",
+  "name": "AtlasIED AZM4/AZM8",
+  "codeowners": ["@berapp"],
+  "config_flow": true,
+  "documentation": "https://github.com/berapp/atlasied_azm",
+  "integration_type": "device",
+  "iot_class": "local_push",
+  "requirements": [],
+  "version": "1.0.0"
+}
