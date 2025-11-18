@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Optional
 
 from homeassistant.components.sensor import SensorEntity, SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
@@ -49,7 +50,7 @@ async def async_setup_entry(
 class AZMSensorEntity(SensorEntity):
     """Base class for AZM sensor entities."""
 
-    def __init__(self, coordinator: AZMCoordinator, param: str, name: str, fmt: str = "val", name_param: str | None = None):
+    def __init__(self, coordinator: AZMCoordinator, param: str, name: str, fmt: str = "val", name_param: Optional[str] = None):
         """Initialize the sensor entity."""
         self._coordinator = coordinator
         self._param = param

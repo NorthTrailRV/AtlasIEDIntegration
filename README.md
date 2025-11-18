@@ -103,6 +103,49 @@ Subscribe to source meter:
 
 ## Troubleshooting
 
+### Integration Not Showing Up
+
+If the integration doesn't appear in the integrations list:
+
+1. **Check Home Assistant logs** for errors:
+   ```bash
+   # View logs in real-time
+   docker logs -f homeassistant
+   # Or in Home Assistant UI: Settings > System > Logs
+   ```
+
+2. **Look for Python syntax errors:**
+   - Search logs for `atlasied_azm` errors
+   - Common issues: indentation, missing imports, type hints on older Python versions
+
+3. **Verify file structure:**
+   ```
+   config/custom_components/atlasied_azm/
+   ├── __init__.py
+   ├── manifest.json
+   ├── config_flow.py
+   ├── const.py
+   ├── azm_client.py
+   ├── number.py
+   ├── sensor.py
+   ├── switch.py
+   ├── strings.json
+   └── translations/
+       └── en.json
+   ```
+
+4. **Check manifest.json** is valid JSON (no trailing commas)
+
+5. **Restart Home Assistant** after copying files:
+   ```bash
+   # Full restart required for custom component changes
+   ha core restart
+   ```
+
+6. **Check Python version compatibility:**
+   - This integration requires Python 3.11+ (for `str | None` syntax)
+   - Check HA logs for type hint errors
+
 ### Connection Issues
 - Ensure the AZM device is powered on and connected to your network
 - Verify the IP address is correct
@@ -113,6 +156,68 @@ Subscribe to source meter:
 - The integration automatically subscribes to parameters when entities are added
 - Meter updates are sent via UDP and may take a moment to start appearing
 - Check Home Assistant logs for any error messages
+
+### Clearing Cached Configuration
+
+If you need to clear cached settings from a previous configuration:
+
+**Option 1: Remove Integration via UI (Recommended)**
+1. Go to **Settings > Devices & Services**
+2. Find the **AtlasIED AZM4/AZM8** integration
+3. Click the three dots menu (⋮) and select **Delete**
+4. Restart Home Assistant
+5. Re-add the integration
+
+**Option 2: Delete Configuration Files**
+1. Stop Home Assistant
+2. Delete the integration's config entry from `.storage/core.config_entries`
+3. Delete entity registry entries from `.storage/core.entity_registry`
+4. Delete device registry entries from `.storage/core.device_registry`
+5. Optionally, clear `.storage/core.restore_state`
+6. Restart Home Assistant
+
+**Option 3: Force Reload (Quick Test)**
+1. Go to **Settings > Devices & Services**
+2. Click the three dots menu (⋮) on the integration
+3. Select **Reload**
+4. This reloads the integration code without deleting configuration
+
+### Debugging Steps
+
+1. **Enable debug logging** in `configuration.yaml`:
+   ```yaml
+   logger:
+     default: info
+     logs:
+       custom_components.atlasied_azm: debug
+   ```
+
+2. **Restart Home Assistant** and watch logs:
+   ```bash
+   # Via Docker
+   docker logs -f homeassistant | grep atlasied
+   
+   # Via Home Assistant CLI
+   ha core restart
+   tail -f /config/home-assistant.log | grep atlasied
+   ```
+
+3. **Check for specific errors:**
+   - `ModuleNotFoundError`: Missing dependencies or file issues
+   - `SyntaxError`: Python syntax problems
+   - `AttributeError`: Missing methods or properties
+   - `TypeError`: Type hint issues (need Python 3.10+)
+
+4. **Test configuration flow:**
+   - Try adding the integration via UI
+   - Check logs immediately for config_flow errors
+   - Look for connection errors to the device
+
+5. **Verify entity creation:**
+   ```bash
+   # Check entity registry
+   cat .storage/core.entity_registry | grep atlasied
+   ```
 
 ## Development
 

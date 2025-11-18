@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, Optional
 
 from homeassistant.components.number import NumberEntity, NumberMode
 from homeassistant.config_entries import ConfigEntry
@@ -42,7 +42,7 @@ async def async_setup_entry(
 class AZMNumberEntity(NumberEntity):
     """Base class for AZM number entities."""
 
-    def __init__(self, coordinator: AZMCoordinator, param: str, name: str, name_param: str | None = None):
+    def __init__(self, coordinator: AZMCoordinator, param: str, name: str, name_param: Optional[str] = None):
         """Initialize the number entity."""
         self._coordinator = coordinator
         self._param = param
