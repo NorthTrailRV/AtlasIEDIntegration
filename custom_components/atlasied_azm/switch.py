@@ -47,11 +47,12 @@ async def async_setup_entry(
 class AZMSwitchEntity(SwitchEntity):
     """Base class for AZM switch entities."""
 
-    def __init__(self, coordinator: AZMCoordinator, param: str, name: str):
+    def __init__(self, coordinator: AZMCoordinator, param: str, name: str, name_param: str | None = None):
         """Initialize the switch entity."""
         self._coordinator = coordinator
         self._param = param
-        self._attr_name = name
+        self._name_param = name_param
+        self._static_name = name
         self._attr_unique_id = f"{coordinator.host}_{param}"
         self._attr_should_poll = False
 
@@ -60,14 +61,35 @@ class AZMSwitchEntity(SwitchEntity):
         await self._coordinator.subscribe_device_parameter(self._param, "val")
         self._coordinator.subscribe_parameter(self._param, self._handle_update)
         await self._coordinator.get_parameter(self._param, "val")
+        
+        # Subscribe to name parameter if provided
+        if self._name_param:
+            await self._coordinator.subscribe_device_parameter(self._name_param, "str")
+            self._coordinator.subscribe_parameter(self._name_param, self._handle_name_update)
+            await self._coordinator.get_parameter(self._name_param, "str")
 
     async def async_will_remove_from_hass(self) -> None:
         """Unsubscribe when removed from hass."""
         self._coordinator.unsubscribe_parameter(self._param, self._handle_update)
+        if self._name_param:
+            self._coordinator.unsubscribe_parameter(self._name_param, self._handle_name_update)
 
     def _handle_update(self) -> None:
         """Handle updates from the coordinator."""
         self.async_write_ha_state()
+    
+    def _handle_name_update(self) -> None:
+        """Handle name updates from the coordinator."""
+        self.async_write_ha_state()
+    
+    @property
+    def name(self) -> str:
+        """Return the name of the entity."""
+        if self._name_param:
+            custom_name = self._coordinator.get_value(self._name_param)
+            if custom_name:
+                return custom_name
+        return self._static_name
 
     @property
     def is_on(self) -> bool | None:
@@ -90,8 +112,9 @@ class AZMZoneMute(AZMSwitchEntity):
     def __init__(self, coordinator: AZMCoordinator, zone_idx: int):
         """Initialize zone mute control."""
         param = f"ZoneMute_{zone_idx}"
+        name_param = f"ZoneName_{zone_idx}"
         name = f"Zone {zone_idx + 1} Mute"
-        super().__init__(coordinator, param, name)
+        super().__init__(coordinator, param, name, name_param)
 
 
 class AZMSourceMute(AZMSwitchEntity):
@@ -100,8 +123,9 @@ class AZMSourceMute(AZMSwitchEntity):
     def __init__(self, coordinator: AZMCoordinator, source_idx: int):
         """Initialize source mute control."""
         param = f"SourceMute_{source_idx}"
+        name_param = f"SourceName_{source_idx}"
         name = f"Source {source_idx + 1} Mute"
-        super().__init__(coordinator, param, name)
+        super().__init__(coordinator, param, name, name_param)
 
 
 class AZMGroupActive(AZMSwitchEntity):

@@ -49,12 +49,13 @@ async def async_setup_entry(
 class AZMSensorEntity(SensorEntity):
     """Base class for AZM sensor entities."""
 
-    def __init__(self, coordinator: AZMCoordinator, param: str, name: str, fmt: str = "val"):
+    def __init__(self, coordinator: AZMCoordinator, param: str, name: str, fmt: str = "val", name_param: str | None = None):
         """Initialize the sensor entity."""
         self._coordinator = coordinator
         self._param = param
         self._fmt = fmt
-        self._attr_name = name
+        self._name_param = name_param
+        self._static_name = name
         self._attr_unique_id = f"{coordinator.host}_{param}"
         self._attr_should_poll = False
 
@@ -63,14 +64,35 @@ class AZMSensorEntity(SensorEntity):
         await self._coordinator.subscribe_device_parameter(self._param, self._fmt)
         self._coordinator.subscribe_parameter(self._param, self._handle_update)
         await self._coordinator.get_parameter(self._param, self._fmt)
+        
+        # Subscribe to name parameter if provided
+        if self._name_param:
+            await self._coordinator.subscribe_device_parameter(self._name_param, "str")
+            self._coordinator.subscribe_parameter(self._name_param, self._handle_name_update)
+            await self._coordinator.get_parameter(self._name_param, "str")
 
     async def async_will_remove_from_hass(self) -> None:
         """Unsubscribe when removed from hass."""
         self._coordinator.unsubscribe_parameter(self._param, self._handle_update)
+        if self._name_param:
+            self._coordinator.unsubscribe_parameter(self._name_param, self._handle_name_update)
 
     def _handle_update(self) -> None:
         """Handle updates from the coordinator."""
         self.async_write_ha_state()
+    
+    def _handle_name_update(self) -> None:
+        """Handle name updates from the coordinator."""
+        self.async_write_ha_state()
+    
+    @property
+    def name(self) -> str:
+        """Return the name of the entity."""
+        if self._name_param:
+            custom_name = self._coordinator.get_value(self._name_param)
+            if custom_name:
+                return custom_name
+        return self._static_name
 
     @property
     def native_value(self) -> str | float | None:
@@ -104,8 +126,9 @@ class AZMZoneMeter(AZMSensorEntity):
     def __init__(self, coordinator: AZMCoordinator, zone_idx: int):
         """Initialize zone meter sensor."""
         param = f"ZoneMeter_{zone_idx}"
+        name_param = f"ZoneName_{zone_idx}"
         name = f"Zone {zone_idx + 1} Meter"
-        super().__init__(coordinator, param, name, fmt="val")
+        super().__init__(coordinator, param, name, fmt="val", name_param=name_param)
         
         self._attr_native_unit_of_measurement = "dB"
         self._attr_device_class = None
@@ -117,8 +140,9 @@ class AZMSourceMeter(AZMSensorEntity):
     def __init__(self, coordinator: AZMCoordinator, source_idx: int):
         """Initialize source meter sensor."""
         param = f"SourceMeter_{source_idx}"
+        name_param = f"SourceName_{source_idx}"
         name = f"Source {source_idx + 1} Meter"
-        super().__init__(coordinator, param, name, fmt="val")
+        super().__init__(coordinator, param, name, fmt="val", name_param=name_param)
         
         self._attr_native_unit_of_measurement = "dB"
         self._attr_device_class = None
