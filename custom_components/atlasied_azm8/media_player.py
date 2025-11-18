@@ -28,10 +28,10 @@ async def async_setup_entry(
     """Set up the AtlasIED AZM8 media player platform."""
     coordinator: AtlasIEDCoordinator = hass.data[DOMAIN][config_entry.entry_id]
 
-    # Create media player entities for all 8 zones
+    # Create media player entities for all 8 zones (0-indexed)
     entities = [
-        AtlasIEDZone(coordinator, zone, config_entry)
-        for zone in range(1, 9)
+        AtlasIEDZone(coordinator, zone_index, config_entry)
+        for zone_index in range(8)
     ]
 
     async_add_entities(entities)
@@ -52,14 +52,14 @@ class AtlasIEDZone(CoordinatorEntity[AtlasIEDCoordinator], MediaPlayerEntity):
     def __init__(
         self,
         coordinator: AtlasIEDCoordinator,
-        zone: int,
+        zone_index: int,
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the zone."""
         super().__init__(coordinator)
-        self._zone = zone
-        self._attr_unique_id = f"{config_entry.entry_id}_zone_{zone}"
-        self._attr_name = f"Zone {zone}"
+        self._zone_index = zone_index  # 0-based index
+        self._attr_unique_id = f"{config_entry.entry_id}_zone_{zone_index}"
+        self._attr_name = f"Zone {zone_index + 1}"
         self._attr_device_info = {
             "identifiers": {(DOMAIN, config_entry.entry_id)},
             "name": config_entry.title,
@@ -67,37 +67,42 @@ class AtlasIEDZone(CoordinatorEntity[AtlasIEDCoordinator], MediaPlayerEntity):
             "model": "AZM8",
         }
         
-        # Common audio sources for the AZM8
+        # Audio sources for the AZM8 (0-based indexing)
         self._attr_source_list = [
-            "Input 1",
-            "Input 2",
-            "Input 3",
-            "Input 4",
-            "Input 5",
-            "Input 6",
-            "Input 7",
-            "Input 8",
+            "Source 0",
+            "Source 1", 
+            "Source 2",
+            "Source 3",
+            "Source 4",
+            "Source 5",
+            "Source 6",
+            "Source 7",
         ]
 
     @property
     def zone_data(self) -> dict[str, Any]:
         """Get the data for this zone."""
-        return self.coordinator.data.get(f"zone_{self._zone}", {})
+        return self.coordinator.data.get(f"zone_{self._zone_index}", {})
 
     @property
     def state(self) -> MediaPlayerState:
         """Return the state of the zone."""
-        if not self.zone_data.get("power", False):
+        if self.zone_data.get("mute", True):
             return MediaPlayerState.OFF
-        if self.zone_data.get("mute", False):
-            return MediaPlayerState.OFF
-        return MediaPlayerState.ON
+        # Zone is on if not muted and gain is above minimum
+        if self.zone_data.get("gain", -80.0) > -80.0:
+            return MediaPlayerState.ON
+        return MediaPlayerState.OFF
 
     @property
     def volume_level(self) -> float | None:
         """Volume level of the media player (0..1)."""
-        volume = self.zone_data.get("volume", 0)
-        return volume / 100.0
+        # Convert dB gain to 0-1 scale
+        # AZM8 typically ranges from -80 dB to +10 dB
+        gain_db = self.zone_data.get("gain", -80.0)
+        # Map -80 to 0.0, 0 to ~0.89, +10 to 1.0
+        volume = (gain_db + 80.0) / 90.0
+        return max(0.0, min(1.0, volume))
 
     @property
     def is_volume_muted(self) -> bool | None:
@@ -107,25 +112,33 @@ class AtlasIEDZone(CoordinatorEntity[AtlasIEDCoordinator], MediaPlayerEntity):
     @property
     def source(self) -> str | None:
         """Return the current input source."""
-        return self.zone_data.get("source")
+        source_index = self.zone_data.get("source", 0)
+        if 0 <= source_index < len(self._attr_source_list):
+            return self._attr_source_list[source_index]
+        return None
 
     async def async_turn_on(self) -> None:
-        """Turn the zone on."""
-        await self.coordinator.set_zone_power(self._zone, True)
+        """Turn the zone on (unmute)."""
+        await self.coordinator.set_zone_mute(self._zone_index, False)
 
     async def async_turn_off(self) -> None:
-        """Turn the zone off."""
-        await self.coordinator.set_zone_power(self._zone, False)
+        """Turn the zone off (mute)."""
+        await self.coordinator.set_zone_mute(self._zone_index, True)
 
     async def async_set_volume_level(self, volume: float) -> None:
         """Set volume level, range 0..1."""
-        volume_int = int(volume * 100)
-        await self.coordinator.set_zone_volume(self._zone, volume_int)
+        # Convert 0-1 scale to dB gain (-80 to +10)
+        gain_db = (volume * 90.0) - 80.0
+        await self.coordinator.set_zone_gain(self._zone_index, gain_db)
 
     async def async_mute_volume(self, mute: bool) -> None:
         """Mute (True) or unmute (False) the zone."""
-        await self.coordinator.set_zone_mute(self._zone, mute)
+        await self.coordinator.set_zone_mute(self._zone_index, mute)
 
     async def async_select_source(self, source: str) -> None:
         """Select input source."""
-        await self.coordinator.set_zone_source(self._zone, source)
+        try:
+            source_index = self._attr_source_list.index(source)
+            await self.coordinator.set_zone_source(self._zone_index, source_index)
+        except ValueError:
+            _LOGGER.error("Invalid source: %s", source)

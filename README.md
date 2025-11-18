@@ -39,7 +39,7 @@ A custom Home Assistant integration for the **AtlasIED AZM8** 8-Zone Audio Mixer
 3. Search for "AtlasIED AZM8"
 4. Enter your device configuration:
    - **Host**: IP address or hostname of your AZM8 device
-   - **Port**: Network port (default: 80)
+   - **Port**: Network port (default: 5321)
    - **Name**: Friendly name for your device (default: "AtlasIED AZM8")
 5. Click **Submit**
 
@@ -122,14 +122,20 @@ automation:
 
 ### API Protocol
 
-This integration communicates with the AtlasIED AZM8 using HTTP requests. Ensure that:
+This integration communicates with the AtlasIED AZM8 using **JSON-RPC 2.0** over **TCP port 5321**. Ensure that:
 - Your AZM8 device is connected to your network
 - The device's IP address is accessible from Home Assistant
-- Any firewalls allow communication on the configured port
+- TCP port 5321 is accessible (default control port for AZM8/AZM4)
+- Any firewalls allow communication on port 5321
 
-### Customizing the Integration
+### Technical Details
 
-If your AZM8 uses a different API protocol or endpoints, you may need to modify the `coordinator.py` file to match your device's specific API implementation. The current implementation provides a standard HTTP-based interface that can be adapted.
+- **Protocol**: JSON-RPC 2.0
+- **Transport**: TCP
+- **Port**: 5321 (control), 3131 (UDP for meter updates)
+- **Message Format**: Newline-delimited JSON messages
+- **Volume Range**: -80 dB to +10 dB (mapped to 0-100% in UI)
+- **Zone Indexing**: 0-based (Zone 1 = index 0)
 
 ## Supported Features
 
