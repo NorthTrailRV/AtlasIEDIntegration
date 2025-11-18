@@ -1,21 +1,42 @@
-{
-  "config": {
-    "step": {
-      "user": {
-        "title": "AtlasIED AZM8 Setup",
-        "description": "Configure your AtlasIED AZM8 8-Zone Audio Mixer. The device uses TCP port 5321 for control.",
-        "data": {
-          "host": "IP Address or Hostname",
-          "name": "Device Name"
-        }
-      }
-    },
-    "error": {
-      "cannot_connect": "Failed to connect to the device. Please check the IP address and ensure port 5321 is accessible.",
-      "unknown": "Unexpected error occurred"
-    },
-    "abort": {
-      "already_configured": "This device is already configured"
-    }
-  }
-}
+{{
+
+  "config": {  "config": {
+
+    "step": {    "step": {
+
+      "user": {      "user": {
+
+        "title": "AtlasIED AZM8 Setup",        "title": "AtlasIED AZM8 Setup",
+
+        "description": "Configure your AtlasIED AZM8 8-Zone Audio Mixer. The device uses TCP port 5321 for control.",        "description": "Configure your AtlasIED AZM8 8-Zone Audio Mixer. The device uses TCP port 5321 for control.",
+
+        "data": {        "data": {
+
+          "host": "IP Address or Hostname",          "host": "IP Address or Hostname",
+
+          "name": "Device Name"          "name": "Device Name"
+
+        }        }
+
+      }      }
+
+    },    },
+
+    "error": {    "error": {
+
+      "cannot_connect": "Failed to connect to the device. Please check the IP address and ensure port 5321 is accessible.",      "cannot_connect": "Failed to connect to the device. Please check the IP address and ensure port 5321 is accessible.",
+
+      "unknown": "Unexpected error occurred"      "unknown": "Unexpected error occurred"
+
+    },    },
+
+    "abort": {    "abort": {
+
+      "already_configured": "This device is already configured"      "already_configured": "This device is already configured"
+
+    }    }
+
+  }  }
+
+}}
+
