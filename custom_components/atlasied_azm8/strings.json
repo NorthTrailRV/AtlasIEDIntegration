@@ -3,16 +3,15 @@
     "step": {
       "user": {
         "title": "AtlasIED AZM8 Setup",
-        "description": "Configure your AtlasIED AZM8 8-Zone Audio Mixer",
+        "description": "Configure your AtlasIED AZM8 8-Zone Audio Mixer. The device uses TCP port 5321 for control.",
         "data": {
           "host": "IP Address or Hostname",
-          "port": "Port",
           "name": "Device Name"
         }
       }
     },
     "error": {
-      "cannot_connect": "Failed to connect to the device. Please check the IP address and port.",
+      "cannot_connect": "Failed to connect to the device. Please check the IP address and ensure port 5321 is accessible.",
       "unknown": "Unexpected error occurred"
     },
     "abort": {

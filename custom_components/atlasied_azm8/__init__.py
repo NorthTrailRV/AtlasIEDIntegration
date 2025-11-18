@@ -5,11 +5,11 @@ import logging
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_HOST, CONF_PORT, Platform
+from homeassistant.const import CONF_HOST, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 
-from .const import DOMAIN
+from .const import DOMAIN, DEFAULT_PORT
 from .coordinator import AtlasIEDCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ PLATFORMS: list[Platform] = [Platform.MEDIA_PLAYER]
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up AtlasIED AZM8 from a config entry."""
     host = entry.data[CONF_HOST]
-    port = entry.data.get(CONF_PORT, 5321)
+    port = DEFAULT_PORT  # Always use the fixed port
 
     coordinator = AtlasIEDCoordinator(hass, host, port)
 

@@ -39,9 +39,10 @@ A custom Home Assistant integration for the **AtlasIED AZM8** 8-Zone Audio Mixer
 3. Search for "AtlasIED AZM8"
 4. Enter your device configuration:
    - **Host**: IP address or hostname of your AZM8 device
-   - **Port**: Network port (default: 5321)
    - **Name**: Friendly name for your device (default: "AtlasIED AZM8")
 5. Click **Submit**
+
+**Note**: The integration automatically uses TCP port 5321, which is the standard control port for the AZM8.
 
 The integration will create 8 media player entities, one for each zone:
 - `media_player.atlasied_azm8_zone_1`
